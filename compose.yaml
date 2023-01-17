@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    container_name: AppServer
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - res:/opt/CdnServer/res
+      - log:/opt/CdnServer/log
+    networks:
+      - consul
+    depends_on:
+      - nginx
+
+  nginx:
+    image: nginx:1.23.3
+    container_name: NginxServer
+    ports:
+      - "80:80"
+    volumes:
+      - log:/var/log/nginx
+      - res:/usr/share/nginx/html
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - consul
+
+
+networks:
+  consul:
+    driver: bridge
+
+#volumes:
+#  res:
+#    external: true
+#    name: cdnserver_res
+#
+#  log:
+#    external: true
+#    name: cdnserver_log
+volumes:
+  res: {}
+  log: {}

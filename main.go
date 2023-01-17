@@ -35,15 +35,18 @@ func AccessLog() app.HandlerFunc {
 }
 func main() {
 	setPref()
-	h := server.New(server.WithHostPorts(":8080"), server.WithMaxRequestBodySize(1024*1024*1024))
+	h := server.New(server.WithHostPorts(":8000"), server.WithMaxRequestBodySize(1024*1024*1024))
 	// hlog.SetLevel(hlog.LevelNotice)
-	// hlog.SetOutput()  使用文件输出
+	// hlog.SetOutput()
 	// 使用中间件
 	h.Use(AccessLog(), recovery.Recovery(recovery.WithRecoveryHandler(MyRecoveryHandler)))
 	group := h.Group("/res")
 	group.GET("/ping", func(c context.Context, ctx *app.RequestContext) {
 		ctx.JSON(consts.StatusOK, utils.H{
 			"message": "pong",
+			"from":    "aliyun",
+			"test":    "ci/cd",
+			"author":  "lee",
 		})
 	})
 	h.POST("/douyin/publish/action/", func(c context.Context, ctx *app.RequestContext) {

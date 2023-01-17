@@ -8,33 +8,43 @@ on:
     branches:
       - main
 
-jobs:
-  build: # 原本Hyperf自带的作业
-    runs-on: centos-8.2
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build
-        run: cp -rf .github/workflows/Dockerfile . && docker build -t hyperf .
+env:
+  SERVER_PRIVATE_KEY: ${{ secrets.SERVER_KEY }} # 服务器私钥
+  SERVER_HOST: ${{ secrets.SERVER_HOST }} # 服务器IP地址
+  USER_NAME: ${{ secrets.SERVER_USERNAME }} # 服务器用户名
+  WORK_DIR: ${{ secrets.SERVER_WORKDIR }}
 
+# easingthemes/ssh-deploy@v2.0.7
+#  env:
+#    # 本地.ssh文件下的私钥id_rsa，存在secrets的TOKEN中
+#    SSH_PRIVATE_KEY: ${{ secrets.TOKEN }}
+#    # 复制操作的参数。"-avzr --delete"意味部署时清空服务器目标目录下的文件
+#    ARGS: "-avzr --delete"
+#    # 源目录，相对于$GITHUB_WORKSPACE根目录的路径
+#    SOURCE: "dist/"
+#    # 服务器域名
+#    REMOTE_HOST: "49.233.195.71"
+#    # 腾讯云默认用户名为root
+#    REMOTE_USER: "root"
+#    # 目标目录
+#    TARGET: "/usr/share/nginx/html"
+#
+#  作者：喂。小欢
+#  链接：https://juejin.cn/post/6844903822800732167
+#  来源：稀土掘金
+#  著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+jobs:
   deploy:
-    runs-on: centos-8.2
-    needs: build # 要求上一个作业完成
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: pull code
-        uses: appleboy/ssh-action@master
-        env:
-          SERVER_WORKDIR: ${{ secrets.SERVER_WORKDIR }} #传递工作目录变量
+      - name: Build & Deploy
+        uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }} #服务器地址
-          username: ${{ secrets.SERVER_USERNAME }} #用户名
-          key: ${{ secrets.SERVER_KEY }} #私钥 安全问题一定都以变量的方式传递！！！
-          envs: SERVER_WORKDIR #使用工作目录变量
-          # 进入到项目目录，执行依赖更新
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.USER_NAME }}
+          key: ${{ env.SERVER_PRIVATE_KEY }}
+          port: 22
           script: |
-            cd $SERVER_WORKDIR #进入到工作目录
-            git checkout . #丢弃修改
-            git pull #拉取代码
-            composer update #更新依赖
-            sudo supervisorctl restart emo #重启项目
+            cd ${{ env.WORK_DIR }}
+            git pull
+            docker-compose up -d --build

@@ -1,9 +1,10 @@
+### Example user template template
+### Example user template
 
+# IntelliJ project files
 .idea
-build/
-res/
-log/
-
+out
+gen
 ### Go template
 # Binaries for programs and plugins
 *.exe
@@ -20,4 +21,7 @@ log/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+res/
+log/
 
