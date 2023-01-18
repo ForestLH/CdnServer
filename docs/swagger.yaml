@@ -1,0 +1,30 @@
+info:
+  contact: {}
+paths:
+  /images/:name:
+    post:
+      consumes:
+      - application/json
+      description: 存入图片数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 存入图片数据
+  /video/:name:
+    post:
+      consumes:
+      - application/json
+      description: 存入视频数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 存入视频数据
+swagger: "2.0"
