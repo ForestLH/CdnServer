@@ -6,15 +6,18 @@ import (
 	"CdnServer/middleware"
 	"CdnServer/src"
 	"context"
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/app/middlewares/server/recovery"
-	"github.com/cloudwego/hertz/pkg/app/server"
-	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/app/middlewares/server/recovery"
+	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	hertzZerolog "github.com/hertz-contrib/logger/zerolog"
 )
 
 func AccessLog() app.HandlerFunc {
@@ -29,40 +32,10 @@ func AccessLog() app.HandlerFunc {
 	}
 }
 func main() {
-
+	f, _ := os.OpenFile(config.LogDir+"cdnserver.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	hlog.SetLogger(GetLogger(f))
 	h := GetServer()
-	hlog.SetLevel(config.LogLevel)
 	h.Spin()
-	//h.POST("/douyin/publish/action/", func(c context.Context, ctx *app.RequestContext) {
-	//	valid := &validation.Validation{}
-	//	mp4, err := ctx.FormFile("data")
-	//	if err != nil || mp4 == nil {
-	//		hlog.Info("failed to get data")
-	//		ctx.AbortWithStatus(http.StatusNotFound)
-	//		return
-	//	}
-	//	destFileName := ctx.PostForm("title")
-	//
-	//	valid.Required(destFileName, "video file name").Message("video file name cannot be null")
-	//	hlog.Info("title:", destFileName)
-	//	mp4File, err := mp4.Open()
-	//	mp4DestFile, _ := os.OpenFile("/tmp/video.mp4", os.O_CREATE|os.O_WRONLY, 0755)
-	//	defer mp4DestFile.Close()
-	//	defer mp4File.Close()
-	//	io.Copy(mp4DestFile, mp4File)
-	//	if err != nil {
-	//
-	//	}
-	//	for valid.HasErrors() {
-	//		errMap := make(map[string]string, 3)
-	//		for _, err := range valid.Errors {
-	//			errMap[err.Key] = err.Message
-	//		}
-	//		ctx.JSON(http.StatusOK, errMap)
-	//	}
-	//})
-	//
-	//h.Spin()
 }
 
 func GetServer() *server.Hertz {
@@ -71,6 +44,15 @@ func GetServer() *server.Hertz {
 	h.Use(AccessLog(), middleware.GlobalErrorHandler, recovery.Recovery())
 	src.InitRoute(h)
 	return h
+}
+
+func GetLogger(output io.Writer) *hertzZerolog.Logger {
+	return hertzZerolog.New(
+		hertzZerolog.WithOutput(output),         // allows to specify output
+		hertzZerolog.WithLevel(config.LogLevel), // option with log level
+		hertzZerolog.WithTimestamp(),            // option with timestamp
+		hertzZerolog.WithCaller(),               // option with caller
+	)
 }
 func setPref() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)

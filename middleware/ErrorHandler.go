@@ -20,7 +20,7 @@ func GlobalErrorHandler(ctx context.Context, c *app.RequestContext) {
 	err := hertzErrors.Unwrap()
 	hlog.CtxErrorf(ctx, "%+v", err)
 	err = errors.Unwrap(err)
-	c.JSON(http.StatusBadRequest, utils.H{
+	c.JSON(http.StatusOK, utils.H{
 		"code":    "400",
 		"message": err.Error(),
 	})
